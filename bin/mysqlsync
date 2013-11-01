@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH << './lib'
+
+require 'rubygems'
+# require 'commander'
+# require 'commander/import'
+require 'mysqlsync/schema'
+require 'mysqlsync/sync'
+require 'mysqlsync/version'
+
+$from = Hash.new
+$to   = Hash.new
+
+$from[:host]     = '127.0.0.1'
+$from[:username] = 'root'
+$from[:password] = 'admin'
+$from[:database] = 'demo_from'
+$to[:host]       = '127.0.0.1'
+$to[:username]   = 'root'
+$to[:password]   = 'admin'
+$to[:database]   = 'demo_to'
+$table           = 'foo'
+
+# $from[:host]     = '127.0.0.1'
+# $from[:username] = 'wuakialphabbdd'
+# $from[:password] = 'cszmEoHZQ0wqlb'
+# $from[:database] = 'wuaki_strike'
+# $from[:port]     = 3366
+
+# $to[:host]       = '127.0.0.1'
+# $to[:username]   = 'root'
+# $to[:password]   = 'admin'
+# $to[:database]   = 'wuaki_test'
+# $to[:port]       = 3306
+
+sync = Mysqlsync::Sync.new($from, $to, $table)
+sync.do_modify_table
+
+if sync.valid_schema
+  sync.get_dump_head
+	sync.do_insert
+	sync.do_update
+	sync.do_delete
+  sync.get_dump_bottom
+end

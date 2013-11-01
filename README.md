@@ -61,7 +61,7 @@ INSERT INTO foo VALUES (7, 1, 'H', 2,NOW(), NOW());
 INSERT INTO foo VALUES (8, 2, 'M', 5,NOW(), NOW());
 ```
 
-Sync all:
+### Sync all:
 
 This command permit sync table schema and data:
 

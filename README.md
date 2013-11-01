@@ -19,13 +19,61 @@ Install it yourself as:
 ### Create example data:
 
 ```SQL
+DROP DATABASE IF EXISTS demo_from;
+DROP DATABASE IF EXISTS demo_to;
 
+CREATE DATABASE demo_from CHARACTER SET utf8;
+USE demo_from;
+
+CREATE TABLE foo (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  bar_id INT,
+  data CHAR(1),
+  test BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP,
+  deleted_at DATETIME
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE bar (
+  id         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  data       CHAR(1),
+  value      VARCHAR(45),
+  created_at TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+INSERT INTO foo VALUES (1, 1, 'A', 1, NOW(), NULL);
+INSERT INTO foo VALUES (2, 1, 'B', 0, NOW(), NULL);
+INSERT INTO foo VALUES (3, 1, 'C', 1, NOW(), NOW());
+INSERT INTO foo VALUES (4, 1, 'D', 0, NOW(), NULL);
+INSERT INTO foo VALUES (5, 1, 'E', 1, NOW(), NULL);
+INSERT INTO foo VALUES (6, 1, 'F', 0, NOW(), NULL);
+INSERT INTO foo VALUES (7, 1, 'I', 1, NOW(), NOW());
+
+CREATE DATABASE demo_to CHARACTER SET utf8;
+USE demo_to;
+
+CREATE TABLE foo (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  bar_id INT,
+  data CHAR(45),
+  status INT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+INSERT INTO foo VALUES (3, 1, 'C', 2,NOW(), NOW());
+INSERT INTO foo VALUES (5, 1, 'F', 2,NOW(), NOW());
+INSERT INTO foo VALUES (6, 1, 'A', 3,NOW(), NOW());
+INSERT INTO foo VALUES (7, 1, 'H', 2,NOW(), NOW());
+INSERT INTO foo VALUES (8, 2, 'M', 5,NOW(), NOW());
 ```
 
 Usage:
 
 ```SHELL
-$ mysqlsync
+$ mysqlsync all --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
+                --to h=localhost,P=3306,u=root,p=admin,d=demo_to \
+                --table foo
 ```
 
 ## Contributing
@@ -38,7 +86,5 @@ $ mysqlsync
 
 ## Todo:
 
-3. Permitir condiciones en la busqueda de datos.
-4. Ignorar columnas o pk a comparar.
-6. Validar que una tabla tenga la clave primaria.
-7. Sera necesario re ajustar los PK "ALTER TABLE AUTO_INCREMENT=n;"?
+1. Add where to filter data.
+2. Ignore columns or Primary Key's.

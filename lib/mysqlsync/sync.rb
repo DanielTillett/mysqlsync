@@ -3,15 +3,39 @@ require 'mysqlsync/schema'
 module Mysqlsync
   class Sync
     def initialize(from, to, table)
-      @from         = Schema.new(from, table)
+      $from  = explode_dns(from)
+      $to    = explode_dns(to)
+      $table = table
+
+      @from         = Schema.new($from, $table)
       $from_columns = @from.get_columns
       $from_ids     = @from.get_ids
       $from_md5s    = @from.get_md5s
 
-      @to           = Schema.new(to, table)
+      @to           = Schema.new($to, $table)
       $to_columns   = @to.get_columns
       $to_ids       = @to.get_ids
       $to_md5s      = @to.get_md5s
+    end
+
+    def explode_dns(options)
+      options.split(',')
+             .map{ |c| c.split('=', 2) }
+             .inject({}) { |m, (key,value)|
+              case key.to_sym
+                when :h
+                  key = :host
+                when :u
+                  key = :user
+                when :p
+                  key = :password
+                when :P
+                  key = :port
+                when :d
+                  key = :database
+              end
+              m[key] = value; m
+            }
     end
 
     def valid_schema
@@ -33,7 +57,7 @@ module Mysqlsync
       left   = @from.get_desc_table
       right  = @to.get_desc_table
       diff   = left - right
-      remove = right.map {|k,v| k } - left.map {|k,v| k }
+      remove = right.map{|k,v| k } - left.map{|k,v| k }
 
       diff.each do |alter|
         column  = alter[0]
@@ -47,7 +71,7 @@ module Mysqlsync
         after   = (index > 0)? " AFTER #{after}" : ' FIRST'
 
         sql  = 'ALTER TABLE '
-        sql << "#{$to[:database]}.#{$table}"
+        sql << @to.get_table_path
         sql << action
         sql << ' COLUMN '
         sql << column
@@ -75,7 +99,7 @@ module Mysqlsync
 
       if !inserts.nil?
         inserts.each do |insert|
-          values = insert.map { |key, value| @from.value(value) }
+          values = insert.map{ |key, value| @from.value(value) }
 
           puts @to.get_insert(columns, values)
         end
@@ -84,8 +108,8 @@ module Mysqlsync
 
     def do_update()
       # Get Common Elements between Two Arrays(Intersection)
-      left  = ($from_md5s - $to_md5s).map {|k,v| k }
-      right = ($to_md5s   - $from_md5s).map {|k,v| k }
+      left  = ($from_md5s - $to_md5s).map{|k,v| k }
+      right = ($to_md5s   - $from_md5s).map{|k,v| k }
       diff  = left & right
       pk    = @from.get_primary_key()
 

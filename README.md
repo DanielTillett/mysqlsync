@@ -2,8 +2,11 @@
 
 This tools allow sync one way two tables one the moment, dont use BINLOG, compare
 every row beetwen tables with MD5 algorithm to search changes, before create DML
-sentences to equal same tables. Don't modify table directly, output DML is in
-STDOUT.
+sentences to equal same tables.
+
+- Don't modify table directly, output DML in STDOUT.
+- Don't use BINLOG.
+- You don't need SUPER PRIVILEGES.
 
 ## Installation
 
@@ -35,13 +38,6 @@ $ mysqlsync
 
 ## Todo:
 
-1. Ejecutar comando con parametros:
-    - mysqlsync data --src --dst
-    - mysqlsync schema --src --dst
-    - mysqlsync all --src --dst
-    - mysqlsync checksum --src --dst
-2. Como pasar los datos de conexion:
-    - --src h=localhost,u=root,p=admin,d=wuaki_production,t=users
 3. Permitir condiciones en la busqueda de datos.
 4. Ignorar columnas o pk a comparar.
 6. Validar que una tabla tenga la clave primaria.

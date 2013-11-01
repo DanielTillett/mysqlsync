@@ -1,46 +1,44 @@
 #!/usr/bin/env ruby
 
+# Only for deploy this script.
 $LOAD_PATH << './lib'
 
 require 'rubygems'
-# require 'commander'
-# require 'commander/import'
+require 'commander'
+require 'commander/import'
 require 'mysqlsync/schema'
 require 'mysqlsync/sync'
 require 'mysqlsync/version'
 
-$from = Hash.new
-$to   = Hash.new
+program :name, 'MySQL Sync Tool'
+program :version, Mysqlsync::VERSION
+program :description, 'This tools allow sync one way two tables.'
+program :help, 'Author', 'Nicola Strappazzon <nicola51980@gmail.com>'
 
-$from[:host]     = '127.0.0.1'
-$from[:username] = 'root'
-$from[:password] = 'admin'
-$from[:database] = 'demo_from'
-$to[:host]       = '127.0.0.1'
-$to[:username]   = 'root'
-$to[:password]   = 'admin'
-$to[:database]   = 'demo_to'
-$table           = 'foo'
 
-# $from[:host]     = '127.0.0.1'
-# $from[:username] = 'wuakialphabbdd'
-# $from[:password] = 'cszmEoHZQ0wqlb'
-# $from[:database] = 'wuaki_strike'
-# $from[:port]     = 3366
+command :all do |c|
+  c.description = 'Sync table schema and data'
+  c.syntax = 'mysqlsync data --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
+  c.option '--from STRING', String, 'DNS to connect to source database'
+  c.option '--to STRING', String, 'DNS to connect to destination database'
+  c.option '--table STRING', String, 'Table name to use to sync'
 
-# $to[:host]       = '127.0.0.1'
-# $to[:username]   = 'root'
-# $to[:password]   = 'admin'
-# $to[:database]   = 'wuaki_test'
-# $to[:port]       = 3306
+  c.action do |args, options|
+    if options.from.nil? ||
+       options.to.nil? ||
+       options.table.nil?
+       puts c.syntax
+    else
+      sync = Mysqlsync::Sync.new(options.from, options.to, options.table)
+      sync.do_modify_table
 
-sync = Mysqlsync::Sync.new($from, $to, $table)
-sync.do_modify_table
-
-if sync.valid_schema
-  sync.get_dump_head
-	sync.do_insert
-	sync.do_update
-	sync.do_delete
-  sync.get_dump_bottom
+      if sync.valid_schema
+        sync.get_dump_head
+        sync.do_insert
+        sync.do_update
+        sync.do_delete
+        sync.get_dump_bottom
+      end
+    end
+  end
 end

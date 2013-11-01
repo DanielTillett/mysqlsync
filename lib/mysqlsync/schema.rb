@@ -6,10 +6,10 @@ module Mysqlsync
   class Schema
     def initialize(host, table)
       @host     = host[:host]
-      @username = host[:username]
+      @username = host[:user]
       @password = host[:password]
       @database = host[:database]
-      @port     = host[:port]
+      @port     = host[:port].to_i
       @table    = table
     end
 
@@ -98,7 +98,7 @@ SQL
         sql  = 'SELECT '
         sql << columns.join(', ')
         sql << ' FROM '
-        sql << "#{@database}.#{@table}"
+        sql << get_table_path
         sql << ' WHERE '
         sql <<  id
         sql << ' IN ('
@@ -113,7 +113,7 @@ SQL
 
     def get_insert(columns, values)
       sql  = 'INSERT INTO '
-      sql << "#{@database}.#{@table}"
+      sql << get_table_path
       sql << '('
       sql << columns.join(', ')
       sql << ') VALUES ('
@@ -123,7 +123,7 @@ SQL
 
     def get_update(values, pk, id)
       sql  = 'UPDATE '
-      sql << "#{@database}.#{@table}"
+      sql << get_table_path
       sql << ' SET '
       sql << values
       sql << ' WHERE '
@@ -135,7 +135,7 @@ SQL
 
     def get_delete(pk, id)
       sql  = 'DELETE FROM '
-      sql << "#{@database}.#{@table}"
+      sql << get_table_path
       sql << ' WHERE '
       sql << pk
       sql << ' = '
@@ -145,7 +145,7 @@ SQL
 
     def get_drop_column(name)
       sql  = 'ALTER TABLE '
-      sql << "#{@database}.#{@table}"
+      sql << get_table_path
       sql << ' DROP COLUMN '
       sql << name
       sql << ';'
@@ -178,6 +178,10 @@ SQL
       else
         !is_a_number?(value)? "'#{value}'" : value
       end
+    end
+
+    def get_table_path
+      "#{@database}.#{@table}"
     end
 
     def get_dump_head

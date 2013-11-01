@@ -34,13 +34,6 @@ CREATE TABLE foo (
   deleted_at DATETIME
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-CREATE TABLE bar (
-  id         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  data       CHAR(1),
-  value      VARCHAR(45),
-  created_at TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
 INSERT INTO foo VALUES (1, 1, 'A', 1, NOW(), NULL);
 INSERT INTO foo VALUES (2, 1, 'B', 0, NOW(), NULL);
 INSERT INTO foo VALUES (3, 1, 'C', 1, NOW(), NOW());
@@ -68,7 +61,9 @@ INSERT INTO foo VALUES (7, 1, 'H', 2,NOW(), NOW());
 INSERT INTO foo VALUES (8, 2, 'M', 5,NOW(), NOW());
 ```
 
-Usage:
+Sync all:
+
+This command permit sync table schema and data:
 
 ```SHELL
 $ mysqlsync all --from h=localhost,P=3306,u=root,p=admin,d=demo_from \

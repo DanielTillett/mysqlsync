@@ -34,9 +34,9 @@ command :all do |c|
 
       if sync.valid_schema
         sync.get_dump_head
-        sync.do_insert
-        sync.do_update
         sync.do_delete
+        sync.do_update
+        sync.do_insert
         sync.get_dump_bottom
       end
     end

@@ -37,7 +37,7 @@ SQL
     end
 
     def get_desc_table()
-      sql = "DESC `#{@database}`.#{@table};"
+      sql = "DESC #{get_table_path}"
 
       execute(sql).each(:as => :array)
     end
@@ -62,21 +62,23 @@ WHERE TABLE_SCHEMA = '#{@database}'
   AND COLUMN_KEY   = 'PRI';
 SQL
 
-      execute(sql).first['COLUMN_NAME']
+      execute(sql).each(:as => :array).join(',')
     end
 
     def get_primary_keys()
       id  = get_primary_key();
-      sql = "SELECT DISTINCT #{id} FROM #{@database}.#{@table};"
+      sql = "SELECT DISTINCT #{id} FROM #{get_table_path};"
 
       execute(sql).map { |column| column[id]}
     end
 
     def get_ids
       id  = get_primary_key();
-      sql = "SELECT #{id} AS id FROM `#{@database}`.#{@table};"
+      if !id.empty?
+        sql = "SELECT MD5(CONCAT(#{id})) AS id FROM #{get_table_path};"
 
-      execute(sql).each(:as => :array)
+        execute(sql).each(:as => :array)
+      end
     end
 
     def get_data(ids)
@@ -99,13 +101,9 @@ SQL
         sql << columns.join(', ')
         sql << ' FROM '
         sql << get_table_path
-        sql << ' WHERE '
-        sql <<  id
-        sql << ' IN ('
-        sql << ids.join(', ')
+        sql << " WHERE MD5(CONCAT(#{id})) IN ("
+        sql << ids.collect {|e| "#{value(e)}" }.join(',')
         sql << ');'
-
-        # puts sql
 
         execute(sql).each
       end
@@ -133,12 +131,16 @@ SQL
       sql << ';'
     end
 
-    def get_delete(pk, id)
+    def get_delete(pk, values)
+      if pk.split(',').count > 1
+        id = pk.split(',').collect{|pk| "#{pk} = #{values[pk]}" }.join(' AND ')
+      else
+        id = "#{pk} = #{values[pk].to_s}"
+      end
+
       sql  = 'DELETE FROM '
       sql << get_table_path
       sql << ' WHERE '
-      sql << pk
-      sql << ' = '
       sql << id
       sql << ';'
     end
@@ -157,13 +159,13 @@ SQL
 
       md5 = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
 
-      sql = "SELECT #{id} AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{@database}.#{@table};"
+      sql = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{get_table_path};"
 
       execute(sql).each(:as => :array)
     end
 
     def get_checksum
-      sql = "CHECKSUM TABLE #{@database}.#{@table};"
+      sql = "CHECKSUM TABLE #{get_table_path};"
 
       execute(sql).each(:as => :array).first[1]
     end
@@ -173,15 +175,21 @@ SQL
     end
 
     def value(value)
-      if value.nil?
-        value = 'NULL'
+      if value.kind_of?(Array)
+        value(value.first)
       else
-        !is_a_number?(value)? "'#{value}'" : value
+        if value.nil?
+          'NULL'
+        elsif !is_a_number?(value)
+           "'#{value}'"
+        else
+          value
+        end
       end
     end
 
     def get_table_path
-      "#{@database}.#{@table}"
+      "`#{@database}`.`#{@table}`"
     end
 
     def get_dump_head
@@ -194,14 +202,14 @@ SQL
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-LOCK TABLES `#{@database}`.`#{@table}` WRITE;
-/*!40000 ALTER TABLE `#{@database}`.`#{@table}` DISABLE KEYS */;
+LOCK TABLES #{get_table_path} WRITE;
+/*!40000 ALTER TABLE #{get_table_path} DISABLE KEYS */;
 HEAD
     end
 
     def get_dump_bottom
       <<BOTTOM
-/*!40000 ALTER TABLE `#{@database}`.`#{@table}` ENABLE KEYS */;
+/*!40000 ALTER TABLE #{get_table_path} ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;

@@ -137,7 +137,7 @@ module Mysqlsync
         deletes.each do |delete|
           delete.map { |key, value| @from.value(value) }
 
-          puts @to.get_delete(id, delete[id].to_s)
+          puts @to.get_delete(id, delete)
         end
       end
     end

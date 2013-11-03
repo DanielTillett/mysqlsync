@@ -34,6 +34,12 @@ CREATE TABLE foo (
   deleted_at DATETIME
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+CREATE TABLE foobar (
+  foo_id INT NOT NULL,
+  bar_id INT NOT NULL,
+  CONSTRAINT id PRIMARY KEY id (foo_id, bar_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 INSERT INTO foo VALUES (1, 1, 'A', 1, NOW(), NULL);
 INSERT INTO foo VALUES (2, 1, 'B', 0, NOW(), NULL);
 INSERT INTO foo VALUES (3, 1, 'C', 1, NOW(), NOW());
@@ -41,6 +47,13 @@ INSERT INTO foo VALUES (4, 1, 'D', 0, NOW(), NULL);
 INSERT INTO foo VALUES (5, 1, 'E', 1, NOW(), NULL);
 INSERT INTO foo VALUES (6, 1, 'F', 0, NOW(), NULL);
 INSERT INTO foo VALUES (7, 1, 'I', 1, NOW(), NOW());
+
+INSERT INTO foobar VALUES (1, 1);
+INSERT INTO foobar VALUES (1, 2);
+INSERT INTO foobar VALUES (1, 3);
+INSERT INTO foobar VALUES (2, 1);
+INSERT INTO foobar VALUES (2, 2);
+INSERT INTO foobar VALUES (2, 3);
 
 CREATE DATABASE demo_to CHARACTER SET utf8;
 USE demo_to;
@@ -54,11 +67,22 @@ CREATE TABLE foo (
   updated_at TIMESTAMP
 );
 
+CREATE TABLE foobar (
+  foo_id INT NOT NULL,
+  bar_id INT NOT NULL,
+  CONSTRAINT id PRIMARY KEY id (foo_id, bar_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 INSERT INTO foo VALUES (3, 1, 'C', 2,NOW(), NOW());
 INSERT INTO foo VALUES (5, 1, 'F', 2,NOW(), NOW());
 INSERT INTO foo VALUES (6, 1, 'A', 3,NOW(), NOW());
 INSERT INTO foo VALUES (7, 1, 'H', 2,NOW(), NOW());
 INSERT INTO foo VALUES (8, 2, 'M', 5,NOW(), NOW());
+
+INSERT INTO foobar VALUES (1, 1);
+INSERT INTO foobar VALUES (1, 3);
+INSERT INTO foobar VALUES (2, 4);
+INSERT INTO foobar VALUES (3, 1);
 ```
 
 ### Sync all:

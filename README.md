@@ -16,7 +16,7 @@ Install it yourself as:
 
 ## Usage
 
-### Create example data:
+### Create example:
 
 ```SQL
 DROP DATABASE IF EXISTS demo_from;

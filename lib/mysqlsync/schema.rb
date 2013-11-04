@@ -89,9 +89,9 @@ SQL
         table.each do |field|
           case field[1]
           when 'datetime'
-            columns << "SUBSTRING(#{field[0]}, 1, 19) AS #{field[0]}"
+            columns << remove_timezone(field[0])
           when 'timestamp'
-            columns << "SUBSTRING(#{field[0]}, 1, 19) AS #{field[0]}"
+            columns << remove_timezone(field[0])
           else
             columns << field[0]
           end
@@ -172,6 +172,10 @@ SQL
 
     def is_a_number?(value)
       /^[+-]?\d+?(\.\d+)?$/ === value.to_s
+    end
+
+    def remove_timezone(timestamp)
+      "SUBSTRING(#{timestamp}, 1, 19) AS #{timestamp}"
     end
 
     def value(value)

@@ -185,7 +185,7 @@ SQL
         if value.nil?
           'NULL'
         elsif !is_a_number?(value)
-           "'#{value}'"
+          value.dump
         else
           value
         end

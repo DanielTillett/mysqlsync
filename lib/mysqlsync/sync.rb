@@ -99,7 +99,7 @@ module Mysqlsync
 
       if !inserts.nil?
         inserts.each do |insert|
-          values = insert.map{ |key, value| @from.value(value) }
+          values = insert.map{ |key, value| @from.value(value, key) }
 
           puts @to.get_insert(columns, values)
         end
@@ -117,7 +117,7 @@ module Mysqlsync
       if values.kind_of?(Array)
         values.map do |update|
           id     = update[pk]
-          update = update.map{ |key, value| "#{key} = #{@from.value(value)}" if key != pk }
+          update = update.map{ |key, value| "#{key} = #{@from.value(value, key)}" if key != pk }
                          .reject{ |k, v| k.nil? }
                          .join(', ')
 
@@ -135,7 +135,7 @@ module Mysqlsync
 
       if !deletes.nil?
         deletes.each do |delete|
-          delete.map { |key, value| @from.value(value) }
+          delete.map { |key, value| @from.value(value, key) }
 
           puts @to.get_delete(id, delete)
         end

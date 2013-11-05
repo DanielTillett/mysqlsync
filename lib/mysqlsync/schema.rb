@@ -11,17 +11,18 @@ module Mysqlsync
       @database = host[:database]
       @port     = host[:port].to_i
       @table    = table
+      @describe = get_desc_table
     end
 
     def execute(sql)
-      mysql = Mysql2::Client.new(host: @host,
+      @mysql = Mysql2::Client.new(host: @host,
                                  username: @username,
                                  password: @password,
                                  database: @database,
                                  port: @port,
                                  database_timezone: :local,
                                  application_timezone: :local)
-      mysql.query(sql)
+      @mysql.query(sql)
     end
 
     def get_tables()
@@ -88,9 +89,7 @@ SQL
         columns = Array.new
         table.each do |field|
           case field[1]
-          when 'datetime'
-            columns << remove_timezone(field[0])
-          when 'timestamp'
+          when 'datetime', 'timestamp'
             columns << remove_timezone(field[0])
           else
             columns << field[0]
@@ -178,16 +177,37 @@ SQL
       "SUBSTRING(#{timestamp}, 1, 19) AS #{timestamp}"
     end
 
-    def value(value)
+    def get_datatype(column)
+      @describe.each do |c|
+        if c.first == column
+          return c[1].gsub(/\(\d+(\,\d+)?\)/, '').upcase
+        end
+      end
+    end
+
+    def value(value, key = nil)
       if value.kind_of?(Array)
-        value(value.first)
+        value(value.first, key)
       else
         if value.nil?
           'NULL'
-        elsif !is_a_number?(value)
-          value.dump
+        elsif key.nil?
+          if !is_a_number?(value)
+            "'#{value}'"
+          else
+            value
+          end
         else
-          value
+          case get_datatype(key)
+          when 'INT', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'BIGINT', 'FLOAT', 'DOUBLE', 'DECIMAL'
+            value
+          when 'DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'YEAR'
+            "'#{value}'"
+          when 'CHAR', 'VARCHAR', 'BLOB', 'TEXT', 'TINYBLOB', 'TINYTEXT', 'MEDIUMBLOB', 'MEDIUMTEXT', 'LONGBLOB', 'LONGTEXT', 'ENUM'
+            value(@mysql.escape(value))
+          else
+            value(value)
+          end
         end
       end
     end

@@ -105,5 +105,6 @@ $ mysqlsync all --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
 
 ## Todo:
 
-1. Add where to filter data.
-2. Ignore columns or Primary Key's.
+1. Exclude by columns name, parameter: `--exclude-columns=id,data,type_id`
+2. Increment value key (primary or foreign key), need the another parameter to specify column name, parameter: `--increment-value=10000`
+3. Increment column name, parameter: `--increment-columns=id,type_id`

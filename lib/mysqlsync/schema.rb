@@ -155,18 +155,18 @@ SQL
     def get_md5s
       id      = get_primary_key();
       columns = get_columns()
-
-      md5 = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
-
-      sql = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{get_table_path};"
+      md5     = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
+      sql     = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{get_table_path};"
 
       execute(sql).each(:as => :array)
     end
 
     def get_checksum
-      sql = "CHECKSUM TABLE #{get_table_path};"
+      columns = get_columns()
+      md5     = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
+      sql     = "SELECT SUM(CRC32(CONCAT(#{md5.join(', ')}))) AS sum FROM #{get_table_path};"
 
-      execute(sql).each(:as => :array).first[1]
+      execute(sql).each(:as => :array).first.first.to_i
     end
 
     def is_a_number?(value)

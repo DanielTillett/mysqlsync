@@ -18,7 +18,7 @@ program :help, 'Author', 'Nicola Strappazzon <nicola51980@gmail.com>'
 
 command :all do |c|
   c.description = 'Sync table schema and data'
-  c.syntax = 'mysqlsync data --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
+  c.syntax = 'mysqlsync all --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
   c.option '--from STRING', String, 'DNS to connect to source database'
   c.option '--to STRING', String, 'DNS to connect to destination database'
   c.option '--table STRING', String, 'Table name to use to sync'
@@ -39,6 +39,25 @@ command :all do |c|
         sync.do_insert
         sync.get_dump_bottom
       end
+    end
+  end
+end
+
+command :checksum do |c|
+  c.description = 'Checksum between tables'
+  c.syntax = 'mysqlsync checksum --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
+  c.option '--from STRING', String, 'DNS to connect to source database'
+  c.option '--to STRING', String, 'DNS to connect to destination database'
+  c.option '--table STRING', String, 'Table name to use to sync'
+
+  c.action do |args, options|
+    if options.from.nil? ||
+       options.to.nil? ||
+       options.table.nil?
+       puts c.syntax
+    else
+      sync = Mysqlsync::Sync.new(options.from, options.to, options.table)
+      sync.checksum
     end
   end
 end

@@ -38,6 +38,16 @@ module Mysqlsync
             }
     end
 
+    def checksum
+      if @from.get_checksum == @to.get_checksum
+        puts "Both tables are equal."
+        exit 0
+      else
+        puts "Both tables are NOT equal."
+        exit 1
+      end
+    end
+
     def valid_schema
       false if @from.get_primary_key.nil?
       false if @to.get_primary_key.nil?

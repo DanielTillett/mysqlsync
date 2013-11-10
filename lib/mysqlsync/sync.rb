@@ -6,16 +6,17 @@ module Mysqlsync
       $from  = explode_dns(from)
       $to    = explode_dns(to)
       $table = table
+      @from  = Schema.new($from, $table)
+      @to    = Schema.new($to, $table)
 
-      @from         = Schema.new($from, $table)
-      $from_columns = @from.get_columns
-      $from_ids     = @from.get_ids
-      $from_md5s    = @from.get_md5s
-
-      @to           = Schema.new($to, $table)
-      $to_columns   = @to.get_columns
-      $to_ids       = @to.get_ids
-      $to_md5s      = @to.get_md5s
+      if valid_schema
+        $from_columns = @from.get_columns
+        $from_ids     = @from.get_ids
+        $from_md5s    = @from.get_md5s
+        $to_columns   = @to.get_columns
+        $to_ids       = @to.get_ids
+        $to_md5s      = @to.get_md5s
+      end
     end
 
     def explode_dns(options)
@@ -49,10 +50,8 @@ module Mysqlsync
     end
 
     def valid_schema
-      false if @from.get_primary_key.nil?
-      false if @to.get_primary_key.nil?
-
-      true
+      !@from.get_primary_key.empty?
+      !@to.get_primary_key.empty?
     end
 
     def get_dump_head
@@ -74,8 +73,8 @@ module Mysqlsync
         type    = alter[1]
         action  = (right.any? {|i| i.first == alter.first})? ' MODIFY' : ' ADD'
         notnull = (!alter[2] == 'NO')? ' NOT NULL' : ' NULL'
-        default = (!alter[4].nil?)? " DEFAULT #{alter[4]}" : ''
-        ai      = (alter[5].include? 'auto_increment')? ' AUTO_INCREMENT' : ''
+        default = (!alter[3].nil?)? " DEFAULT #{alter[3]}" : ''
+        ai      = (alter[4].include? 'auto_increment')? ' AUTO_INCREMENT' : ''
         index   = left.each_index.select{|i| left[i] == alter}.first
         after   = left[((index > 0)? index - 1 : 0)].first
         after   = (index > 0)? " AFTER #{after}" : ' FIRST'

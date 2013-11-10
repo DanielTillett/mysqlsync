@@ -15,7 +15,6 @@ program :version, Mysqlsync::VERSION
 program :description, 'This tools allow sync one way two tables.'
 program :help, 'Author', 'Nicola Strappazzon <nicola51980@gmail.com>'
 
-
 command :all do |c|
   c.description = 'Sync table schema and data'
   c.syntax = 'mysqlsync all --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
@@ -38,6 +37,8 @@ command :all do |c|
         sync.do_update
         sync.do_insert
         sync.get_dump_bottom
+      else
+        puts "-- Schema table is not equal."
       end
     end
   end

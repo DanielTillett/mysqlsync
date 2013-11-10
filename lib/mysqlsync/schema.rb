@@ -16,12 +16,12 @@ module Mysqlsync
 
     def execute(sql)
       @mysql = Mysql2::Client.new(host: @host,
-                                 username: @username,
-                                 password: @password,
-                                 database: @database,
-                                 port: @port,
-                                 database_timezone: :local,
-                                 application_timezone: :local)
+                                  username: @username,
+                                  password: @password,
+                                  database: @database,
+                                  port: @port,
+                                  database_timezone: :local,
+                                  application_timezone: :local)
       @mysql.query(sql)
     end
 
@@ -38,7 +38,17 @@ SQL
     end
 
     def get_desc_table()
-      sql = "DESC #{get_table_path}"
+      sql = <<SQL
+SELECT COLUMN_NAME,
+       COLUMN_TYPE,
+       IS_NULLABLE,
+       COLUMN_DEFAULT,
+       EXTRA,
+       ORDINAL_POSITION
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE table_schema = '#{@database}'
+  AND table_name   = '#{@table}';
+SQL
 
       execute(sql).each(:as => :array)
     end

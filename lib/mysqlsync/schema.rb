@@ -76,13 +76,6 @@ SQL
       execute(sql).each(:as => :array).join(',')
     end
 
-    def get_primary_keys()
-      id  = get_primary_key();
-      sql = "SELECT DISTINCT #{id} FROM #{get_table_path};"
-
-      execute(sql).map { |column| column[id]}
-    end
-
     def get_ids
       id  = get_primary_key();
       if !id.empty?

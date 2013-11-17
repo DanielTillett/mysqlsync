@@ -4,7 +4,7 @@ require 'time'
 
 module Mysqlsync
   class Schema
-    def initialize(host, table)
+    def initialize(host, table, increment)
       @host     = host[:host]
       @username = host[:user]
       @password = host[:password]

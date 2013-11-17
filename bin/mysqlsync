@@ -62,3 +62,30 @@ command :checksum do |c|
     end
   end
 end
+
+command :merge do |c|
+  c.description = 'Merge two tables with increment primary key and foreign key'
+  c.syntax = 'mysqlsync checksum --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo --increment-columns id,type_id --increment-value=1000'
+  c.option '--from STRING', String, 'DNS to connect to source database'
+  c.option '--to STRING', String, 'DNS to connect to destination database'
+  c.option '--table STRING', String, 'Table name to use to sync'
+  c.option '--increment-columns STRING', String, 'Primary Key and Foreign Key'
+  c.option '--increment-value STRING', String, 'New value for Primary Key and Foreign Key'
+
+  c.action do |args, options|
+    if options.from.nil? ||
+       options.to.nil? ||
+       options.table.nil? ||
+       options.increment_columns.nil? ||
+       options.increment_value.nil?
+       puts c.syntax
+    else
+      sync = Mysqlsync::Sync.new(options.from,
+                                 options.to,
+                                 options.table,
+                                 { columns: options.increment_columns,
+                                     value: options.increment_value })
+      sync.do_insert
+    end
+  end
+end

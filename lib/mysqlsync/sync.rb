@@ -2,12 +2,12 @@ require 'mysqlsync/schema'
 
 module Mysqlsync
   class Sync
-    def initialize(from, to, table)
+    def initialize(from, to, table, increment = {columns: nil, value: 0})
       $from  = explode_dns(from)
       $to    = explode_dns(to)
       $table = table
-      @from  = Schema.new($from, $table)
-      @to    = Schema.new($to, $table)
+      @from  = Schema.new($from, $table, increment)
+      @to    = Schema.new($to, $table, increment)
 
       if valid_schema
         $from_columns = @from.get_columns

@@ -69,30 +69,7 @@ module Mysqlsync
       remove = right.map{|k,v| k } - left.map{|k,v| k }
 
       diff.each do |alter|
-        column  = alter[0]
-        type    = alter[1]
-        action  = (right.any? {|i| i.first == alter.first})? ' MODIFY' : ' ADD'
-        notnull = (!alter[2] == 'NO')? ' NOT NULL' : ' NULL'
-        default = (!alter[3].nil?)? " DEFAULT #{alter[3]}" : ''
-        ai      = (alter[4].include? 'auto_increment')? ' AUTO_INCREMENT' : ''
-        index   = left.each_index.select{|i| left[i] == alter}.first
-        after   = left[((index > 0)? index - 1 : 0)].first
-        after   = (index > 0)? " AFTER #{after}" : ' FIRST'
-
-        sql  = 'ALTER TABLE '
-        sql << @to.get_table_path
-        sql << action
-        sql << ' COLUMN '
-        sql << column
-        sql << ' '
-        sql << type
-        sql << notnull
-        sql << default
-        sql << ai
-        sql << after
-        sql << ';'
-
-        puts sql
+        puts @to.get_alter_table(alter, right, left)
       end
 
       remove.each do |column|
@@ -108,9 +85,7 @@ module Mysqlsync
 
       if !inserts.nil?
         inserts.each do |insert|
-          values = insert.map{ |key, value| @from.value(value, key) }
-
-          puts @to.get_insert(columns, values)
+          puts @to.get_insert(columns, insert)
         end
       end
     end
@@ -125,12 +100,7 @@ module Mysqlsync
       values = @from.get_data(diff)
       if values.kind_of?(Array)
         values.map do |update|
-          id     = update[pk]
-          update = update.map{ |key, value| "#{key} = #{@from.value(value, key)}" if key != pk }
-                         .reject{ |k, v| k.nil? }
-                         .join(', ')
-
-          puts @to.get_update(update, pk, id.to_s)
+          puts @to.get_update(update, pk)
         end
       end
     end
@@ -144,8 +114,6 @@ module Mysqlsync
 
       if !deletes.nil?
         deletes.each do |delete|
-          delete.map { |key, value| @from.value(value, key) }
-
           puts @to.get_delete(id, delete)
         end
       end

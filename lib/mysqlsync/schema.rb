@@ -118,29 +118,62 @@ SQL
       end
     end
 
+    def get_alter_table(alter, right, left)
+      column  = alter[0]
+      type    = alter[1]
+      action  = (right.any? {|i| i.first == alter.first})? ' MODIFY' : ' ADD'
+      notnull = (!alter[2] == 'NO')? ' NOT NULL' : ' NULL'
+      default = (!alter[3].nil?)? " DEFAULT #{alter[3]}" : ''
+      ai      = (alter[4].include? 'auto_increment')? ' AUTO_INCREMENT' : ''
+      index   = left.each_index.select{|i| left[i] == alter}.first
+      after   = left[((index > 0)? index - 1 : 0)].first
+      after   = (index > 0)? " AFTER #{after}" : ' FIRST'
+
+      sql  = 'ALTER TABLE '
+      sql << get_table_path
+      sql << action
+      sql << ' COLUMN '
+      sql << column
+      sql << ' '
+      sql << type
+      sql << notnull
+      sql << default
+      sql << ai
+      sql << after
+      sql << ';'
+    end
+
     def get_insert(columns, values)
       sql  = 'INSERT INTO '
       sql << get_table_path
       sql << '('
       sql << columns.join(', ')
       sql << ') VALUES ('
-      sql << values.join(', ')
+      sql << values.map{ |key, value| value(value, key) }.join(', ')
       sql << ');'
     end
 
-    def get_update(values, pk, id)
+    def get_update(values, pk)
+      update = values.map{ |key, value|
+                          "#{key} = #{value(value, key)}" if key != pk
+                         }
+                     .reject{ |k, v| k.nil? }
+                     .join(', ')
+
       sql  = 'UPDATE '
       sql << get_table_path
       sql << ' SET '
-      sql << values
+      sql << update
       sql << ' WHERE '
       sql << pk
       sql << ' = '
-      sql << id
+      sql << values[pk].to_s
       sql << ';'
     end
 
     def get_delete(pk, values)
+      values.map { |key, value| value(value, key) }
+
       if pk.split(',').count > 1
         id = pk.split(',').collect{|pk| "#{pk} = #{values[pk]}" }.join(' AND ')
       else

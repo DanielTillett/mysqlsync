@@ -6,17 +6,17 @@ module Mysqlsync
       $from  = explode_dns(from)
       $to    = explode_dns(to)
       $table = table
-      @from  = Schema.new($from, $table, increment)
-      @to    = Schema.new($to, $table, increment)
+      @from  = Schema.new(:from, $from, $table, increment)
+      @to    = Schema.new(:to, $to, $table, increment)
 
-      if valid_schema
+      # if valid_schema
         $from_columns = @from.get_columns
-        $from_ids     = @from.get_ids
-        $from_md5s    = @from.get_md5s
+        # $from_ids     = @from.get_ids
+        # $from_md5s    = @from.get_md5s
         $to_columns   = @to.get_columns
-        $to_ids       = @to.get_ids
-        $to_md5s      = @to.get_md5s
-      end
+        # $to_ids       = @to.get_ids
+        # $to_md5s      = @to.get_md5s
+      # end
     end
 
     def explode_dns(options)
@@ -49,10 +49,13 @@ module Mysqlsync
       end
     end
 
-    def valid_schema
-      !@from.get_primary_key.empty?
-      !@to.get_primary_key.empty?
-    end
+    # def valid_schema
+      # if !((@from.get_desc_table - @to.get_desc_table) != 0) ||
+      #    !@from.get_primary_key.empty? ||
+      #    !@to.get_primary_key.empty?
+      #    return false
+      # end
+    # end
 
     def get_dump_head
       puts @to.get_dump_head
@@ -77,21 +80,28 @@ module Mysqlsync
       end
     end
 
-    def do_insert()
+    def do_delete()
       # Remove Any Elements from Array 1 that are contained in Array 2.(Difference)
-      ids     = $from_ids - $to_ids
-      columns = @from.get_columns()
-      inserts = @from.get_data(ids)
+      $from_ids     = @from.get_ids(:delete)
+      $to_ids       = @to.get_ids(:delete)
 
-      if !inserts.nil?
-        inserts.each do |insert|
-          puts @to.get_insert(columns, insert)
+      ids     = $to_ids - $from_ids
+      id      = @to.get_primary_key()
+      columns = @to.get_columns()
+      deletes = @to.get_data(ids)
+
+      if !deletes.nil?
+        deletes.each do |delete|
+          puts @to.get_delete(id, delete)
         end
       end
     end
 
     def do_update()
       # Get Common Elements between Two Arrays(Intersection)
+      $from_md5s    = @from.get_md5s
+      $to_md5s      = @to.get_md5s
+
       left  = ($from_md5s - $to_md5s).map{|k,v| k }
       right = ($to_md5s   - $from_md5s).map{|k,v| k }
       diff  = left & right
@@ -105,16 +115,18 @@ module Mysqlsync
       end
     end
 
-    def do_delete()
+    def do_insert()
       # Remove Any Elements from Array 1 that are contained in Array 2.(Difference)
-      ids     = $to_ids - $from_ids
-      id      = @to.get_primary_key()
-      columns = @to.get_columns()
-      deletes = @to.get_data(ids)
+      $from_ids     = @from.get_ids(:insert)
+      $to_ids       = @to.get_ids(:insert)
 
-      if !deletes.nil?
-        deletes.each do |delete|
-          puts @to.get_delete(id, delete)
+      ids     = $from_ids - $to_ids
+      columns = @from.get_columns()
+      inserts = @from.get_data(ids)
+
+      if !inserts.nil?
+        inserts.each do |insert|
+          puts @to.get_insert(columns, insert)
         end
       end
     end

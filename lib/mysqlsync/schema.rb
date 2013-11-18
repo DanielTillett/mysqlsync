@@ -4,14 +4,18 @@ require 'time'
 
 module Mysqlsync
   class Schema
-    def initialize(host, table, increment)
-      @host     = host[:host]
-      @username = host[:user]
-      @password = host[:password]
-      @database = host[:database]
-      @port     = host[:port].to_i
-      @table    = table
-      @describe = get_desc_table
+    def initialize(type, host, table, increment)
+      @type      = type
+      @host      = host[:host]
+      @username  = host[:user]
+      @password  = host[:password]
+      @database  = host[:database]
+      @port      = host[:port].to_i
+      @table     = table
+      @increment = increment
+      @describe  = get_desc_table
+      @id        = get_primary_key();
+      @columns   = get_columns()
     end
 
     def execute(sql)
@@ -76,18 +80,52 @@ SQL
       execute(sql).each(:as => :array).join(',')
     end
 
-    def get_ids
-      id  = get_primary_key();
+    def add_increment_column()
+      if @type == :from && !@increment[:columns].nil? && @increment[:columns].include?(@id)
+        "#{@id} + #{@increment[:value]}"
+      else
+        @id
+      end
+    end
+
+    def add_increment_value(column)
+      if @type == :from && !@increment[:columns].nil? && @increment[:columns].include?(column)
+        column = "#{column} + #{@increment[:value]}"
+      end
+      column
+    end
+
+    # Use this method only for get id's for DELETE and INSERT.
+    def get_ids(action)
+
+          if @type == :to
+            id    = @id
+            where = " WHERE #{@id} >= #{@increment[:value]}"
+          else
+            id    = "#{@id} + #{@increment[:value]}"
+            where = ""
+          end
+
       if !id.empty?
-        sql = "SELECT MD5(CONCAT(#{id})) AS id FROM #{get_table_path};"
+        sql = "SELECT MD5(#{id}) AS id FROM #{get_table_path}#{where};"
 
         execute(sql).each(:as => :array)
       end
     end
 
+    # Use this method only for get id's for UPDATE.
+    def get_md5s
+      id      = get_primary_key();
+      columns = get_columns()
+      md5     = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
+      sql     = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{get_table_path};"
+
+      execute(sql).each(:as => :array)
+    end
+
+    # Use this method for INSERT, UPDATE and DELETE.
     def get_data(ids)
       if !ids.empty?
-        id      = get_primary_key();
         table   = get_desc_table()
         columns = Array.new
         table.each do |field|
@@ -95,9 +133,15 @@ SQL
           when 'datetime', 'timestamp'
             columns << remove_timezone(field[0])
           else
-            columns << field[0]
+            columns << add_increment_value(field[0])
           end
         end
+
+        # Insert
+        id = add_increment_column
+
+        # Delete
+        # id = @id
 
         sql  = 'SELECT '
         sql << columns.join(', ')
@@ -186,23 +230,6 @@ SQL
       sql << ' DROP COLUMN '
       sql << name
       sql << ';'
-    end
-
-    def get_md5s
-      id      = get_primary_key();
-      columns = get_columns()
-      md5     = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
-      sql     = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{get_table_path};"
-
-      execute(sql).each(:as => :array)
-    end
-
-    def get_checksum
-      columns = get_columns()
-      md5     = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
-      sql     = "SELECT SUM(CRC32(CONCAT(#{md5.join(', ')}))) AS sum FROM #{get_table_path};"
-
-      execute(sql).each(:as => :array).first.first.to_i
     end
 
     def is_a_number?(value)

@@ -16,6 +16,8 @@ module Mysqlsync
       @describe  = get_desc_table
       @id        = get_primary_key();
       @columns   = get_columns()
+
+      # @increment[:value] = get_increment_value + @increment[:value].to_i;
     end
 
     def execute(sql)
@@ -54,7 +56,7 @@ WHERE table_schema = '#{@database}'
   AND table_name   = '#{@table}';
 SQL
 
-      execute(sql).each(:as => :array)
+      execute(sql).each(as: :array)
     end
 
     def get_columns()
@@ -77,7 +79,7 @@ WHERE TABLE_SCHEMA = '#{@database}'
   AND COLUMN_KEY   = 'PRI';
 SQL
 
-      execute(sql).each(:as => :array).join(',')
+      execute(sql).each(as: :array).join(',')
     end
 
     def add_increment_column()
@@ -95,6 +97,19 @@ SQL
       column
     end
 
+    # def get_increment_value
+    #   columns = @increment[:columns].split(',')
+    #                                 .collect { |column| "MAX(#{column})" }
+    #                                 .join(',')
+    #   if @increment[:columns].split(',').count > 1
+    #     columns = "GREATEST(#{columns})"
+    #   end
+
+    #   sql = "SELECT #{columns} AS 'max' FROM #{get_table_path};"
+
+    #   execute(sql).first['max'].to_i
+    # end
+
     # Use this method only for get id's for DELETE and INSERT.
     def get_ids(action)
 
@@ -109,7 +124,7 @@ SQL
       if !id.empty?
         sql = "SELECT MD5(#{id}) AS id FROM #{get_table_path}#{where};"
 
-        execute(sql).each(:as => :array)
+        execute(sql).each(as: :array)
       end
     end
 
@@ -120,7 +135,7 @@ SQL
       md5     = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
       sql     = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{get_table_path};"
 
-      execute(sql).each(:as => :array)
+      execute(sql).each(as: :array)
     end
 
     # Use this method for INSERT, UPDATE and DELETE.

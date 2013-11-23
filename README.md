@@ -22,6 +22,45 @@ Install it yourself as:
 
 ## Usage
 
+### Sync Schema:
+
+This command permit sync table schema:
+
+```SHELL
+$ mysqlsync schema --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
+                   --to h=localhost,P=3306,u=root,p=admin,d=demo_to \
+                   --table foo
+```
+
+### Sync data:
+
+This command permit sync table data:
+
+```SHELL
+$ mysqlsync data --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
+                 --to h=localhost,P=3306,u=root,p=admin,d=demo_to \
+                 --table foo
+```
+
+### Checksum:
+
+This command verify two tables is equal by checksum:
+
+```SHELL
+$ mysqlsync checksum --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
+                     --to h=localhost,P=3306,u=root,p=admin,d=demo_to \
+                     --table foo
+```
+
+### Merge:
+
+--increment-columns Son las columnas que se le aplica el valor de incremento,
+                    debe ser de tipo de dato númerico, ideal aplicar unicamente
+                    para claves Primarias o Foraneas.
+--increment-value Es el valor que se incrementa, es obligatorio definirlo, para
+                  la primera vez (importación) y la proxima vez (sync), indica
+                  el punto de partida para saber que se debe sync.
+
 ### Create example:
 
 ```SQL
@@ -89,16 +128,6 @@ INSERT INTO foobar VALUES (1, 1);
 INSERT INTO foobar VALUES (1, 3);
 INSERT INTO foobar VALUES (2, 4);
 INSERT INTO foobar VALUES (3, 1);
-```
-
-### Sync all:
-
-This command permit sync table schema and data:
-
-```SHELL
-$ mysqlsync all --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
-                --to h=localhost,P=3306,u=root,p=admin,d=demo_to \
-                --table foo
 ```
 
 ## Contributing

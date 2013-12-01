@@ -17,6 +17,8 @@ module Mysqlsync
       @id        = get_primary_key();
       @columns   = get_columns()
 
+      @increment[:columns] = "`#{@increment[:columns]}`"
+
       # @increment[:value] = get_increment_value + @increment[:value].to_i;
     end
 
@@ -112,14 +114,13 @@ SQL
 
     # Use this method only for get id's for DELETE and INSERT.
     def get_ids(action)
-
-          if @type == :to
-            id    = @id
-            where = " WHERE #{@id} >= #{@increment[:value]}"
-          else
-            id    = "#{@id} + #{@increment[:value]}"
-            where = ""
-          end
+      if @type == :to
+        id    = @id
+        where = " WHERE #{@id} >= #{@increment[:value]}"
+      else
+        id    = "#{@id} + #{@increment[:value]}"
+        where = ""
+      end
 
       if !id.empty?
         sql = "SELECT MD5(#{id}) AS id FROM #{get_table_path}#{where};"
@@ -130,10 +131,26 @@ SQL
 
     # Use this method only for get id's for UPDATE.
     def get_md5s
-      id      = get_primary_key();
-      columns = get_columns()
-      md5     = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
-      sql     = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{md5.join(', ')})) AS md5 FROM #{get_table_path};"
+      columns = @columns
+
+      if @type == :to
+        id    = @id
+        where = " WHERE #{@id} >= #{@increment[:value]}"
+      else
+        id     = "#{@id} + #{@increment[:value]}"
+        columns = columns.map { |column| (column == "`#{@id}`")? id : column}
+        where  = ""
+      end
+
+      # puts "\n\n"
+      # id      = get_primary_key();
+      # p columns.map { |column| if column == "`#{id_tmp}`" then "`#{id}`" else id end }
+
+
+
+
+      columns = columns.map { |column| "COALESCE(#{column}, '#{column}')"}
+      sql     = "SELECT MD5(CONCAT(#{id})) AS id, MD5(CONCAT(#{columns.join(', ')})) AS md5 FROM #{get_table_path}#{where};"
 
       execute(sql).each(as: :array)
     end
@@ -141,14 +158,13 @@ SQL
     # Use this method for INSERT, UPDATE and DELETE.
     def get_data(ids)
       if !ids.empty?
-        table   = get_desc_table()
-        columns = Array.new
-        table.each do |field|
-          case field[1]
-          when 'datetime', 'timestamp'
-            columns << remove_timezone(field[0])
-          else
-            columns << add_increment_value(field[0])
+        select  = Array.new
+        @columns.each do |column|
+          case get_datatype(column)
+            when 'DATETIME', 'TIMESTAMP'
+              select << remove_timezone(column)
+            else
+              select << add_increment_value(column)
           end
         end
 
@@ -159,7 +175,7 @@ SQL
         # id = @id
 
         sql  = 'SELECT '
-        sql << columns.join(', ')
+        sql << select.join(', ')
         sql << ' FROM '
         sql << get_table_path
         sql << " WHERE MD5(CONCAT(#{id})) IN ("
@@ -257,7 +273,7 @@ SQL
 
     def get_datatype(column)
       @describe.each do |c|
-        if c.first == column
+        if "`#{c.first}`" == column
           return c[1].gsub(/\(\d+(\,\d+)?\)/, '').upcase
         end
       end

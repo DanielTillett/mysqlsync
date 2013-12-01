@@ -17,7 +17,7 @@ program :help, 'Author', 'Nicola Strappazzon <nicola51980@gmail.com>'
 
 command :schema do |c|
   c.description = 'Sync table schema only'
-  c.syntax = 'mysqlsync all --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
+  c.syntax = 'mysqlsync schema --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
   c.option '--from STRING', String, 'DNS to connect to source database'
   c.option '--to STRING', String, 'DNS to connect to destination database'
   c.option '--table STRING', String, 'Table name to use to sync'
@@ -36,7 +36,7 @@ end
 
 command :data do |c|
   c.description = 'Sync table data only'
-  c.syntax = 'mysqlsync all --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
+  c.syntax = 'mysqlsync data --from h=127.0.0.1,P=3306,u=root,p=admin,d=demo_from --to h=127.0.0.1,P=3306,u=root,p=admin,d=demo_to --table foo'
   c.option '--from STRING', String, 'DNS to connect to source database'
   c.option '--to STRING', String, 'DNS to connect to destination database'
   c.option '--table STRING', String, 'Table name to use to sync'
@@ -104,8 +104,8 @@ command :merge do |c|
                                  { columns: options.increment_columns,
                                      value: options.increment_value })
 
-      # sync.do_delete
-      # sync.do_update
+      sync.do_delete
+      sync.do_update
       sync.do_insert
     end
   end

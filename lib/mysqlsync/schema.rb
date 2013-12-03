@@ -4,6 +4,7 @@ require 'time'
 
 module Mysqlsync
   class Schema
+<<<<<<< HEAD
     def initialize(type, host, table, increment)
       @type      = type
       @host      = host[:host]
@@ -20,6 +21,16 @@ module Mysqlsync
       @increment[:columns] = "`#{@increment[:columns]}`"
 
       # @increment[:value] = get_increment_value + @increment[:value].to_i;
+=======
+    def initialize(host, table, increment)
+      @host     = host[:host]
+      @username = host[:user]
+      @password = host[:password]
+      @database = host[:database]
+      @port     = host[:port].to_i
+      @table    = table
+      @describe = get_desc_table
+>>>>>>> f839aef37abbe17e29a437bd7e054a76d2cc32a3
     end
 
     def execute(sql)

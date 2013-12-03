@@ -6,13 +6,8 @@ module Mysqlsync
       $from  = explode_dns(from)
       $to    = explode_dns(to)
       $table = table
-<<<<<<< HEAD
       @from  = Schema.new(:from, $from, $table, increment)
       @to    = Schema.new(:to, $to, $table, increment)
-=======
-      @from  = Schema.new($from, $table, increment)
-      @to    = Schema.new($to, $table, increment)
->>>>>>> f839aef37abbe17e29a437bd7e054a76d2cc32a3
 
       # if valid_schema
         $from_columns = @from.get_columns

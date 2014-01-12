@@ -41,10 +41,10 @@ module Mysqlsync
 
     def checksum
       if @from.get_checksum == @to.get_checksum
-        puts "Both tables are equal."
+        puts "-- Both tables are equal."
         exit 0
       else
-        puts "Both tables are NOT equal."
+        puts "-- Both tables are NOT equal, try to sync data."
         exit 1
       end
     end

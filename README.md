@@ -22,75 +22,6 @@ Install it yourself as:
 
 ## Usage
 
-### Create example:
-
-```SQL
-DROP DATABASE IF EXISTS demo_from;
-DROP DATABASE IF EXISTS demo_to;
-
-CREATE DATABASE demo_from CHARACTER SET utf8;
-USE demo_from;
-
-CREATE TABLE foo (
-  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  bar_id INT,
-  data CHAR(1),
-  test BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP,
-  deleted_at DATETIME
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
-CREATE TABLE foobar (
-  foo_id INT NOT NULL,
-  bar_id INT NOT NULL,
-  CONSTRAINT id PRIMARY KEY id (foo_id, bar_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
-INSERT INTO foo VALUES (1, 1, 'A', 1, NOW(), NULL);
-INSERT INTO foo VALUES (2, 1, 'B', 0, NOW(), NULL);
-INSERT INTO foo VALUES (3, 1, 'C', 1, NOW(), NOW());
-INSERT INTO foo VALUES (4, 1, 'D', 0, NOW(), NULL);
-INSERT INTO foo VALUES (5, 1, 'E', 1, NOW(), NULL);
-INSERT INTO foo VALUES (6, 1, 'F', 0, NOW(), NULL);
-INSERT INTO foo VALUES (7, 1, 'I', 1, NOW(), NOW());
-
-INSERT INTO foobar VALUES (1, 1);
-INSERT INTO foobar VALUES (1, 2);
-INSERT INTO foobar VALUES (1, 3);
-INSERT INTO foobar VALUES (2, 1);
-INSERT INTO foobar VALUES (2, 2);
-INSERT INTO foobar VALUES (2, 3);
-
-CREATE DATABASE demo_to CHARACTER SET utf8;
-USE demo_to;
-
-CREATE TABLE foo (
-  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  bar_id INT,
-  data CHAR(45),
-  status INT,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-);
-
-CREATE TABLE foobar (
-  foo_id INT NOT NULL,
-  bar_id INT NOT NULL,
-  CONSTRAINT id PRIMARY KEY id (foo_id, bar_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
-INSERT INTO foo VALUES (3, 1, 'C', 2,NOW(), NOW());
-INSERT INTO foo VALUES (5, 1, 'F', 2,NOW(), NOW());
-INSERT INTO foo VALUES (6, 1, 'A', 3,NOW(), NOW());
-INSERT INTO foo VALUES (7, 1, 'H', 2,NOW(), NOW());
-INSERT INTO foo VALUES (8, 2, 'M', 5,NOW(), NOW());
-
-INSERT INTO foobar VALUES (1, 1);
-INSERT INTO foobar VALUES (1, 3);
-INSERT INTO foobar VALUES (2, 4);
-INSERT INTO foobar VALUES (3, 1);
-```
-
 ### Sync all:
 
 This command permit sync table schema and data:
@@ -114,4 +45,3 @@ $ mysqlsync all --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
 1. Exclude by columns name, parameter: `--exclude-columns=id,data,type_id`
 2. Increment value key (primary or foreign key), need the another parameter to specify column name, parameter: `--increment-value=10000`
 3. Increment column name, parameter: `--increment-columns=id,type_id`
-4. Test sync with junction table.

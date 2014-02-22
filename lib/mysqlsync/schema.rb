@@ -4,7 +4,7 @@ require 'time'
 
 module Mysqlsync
   class Schema
-    def initialize(host, table)
+    def initialize(host, table = nil)
       @host     = host[:host]
       @username = host[:user]
       @password = host[:password]
@@ -12,6 +12,8 @@ module Mysqlsync
       @port     = host[:port].to_i
       @table    = table
       @describe = get_desc_table
+
+      ObjectSpace.define_finalizer(self, self.class.method(:finalize))
     end
 
     def execute(sql)
@@ -23,6 +25,15 @@ module Mysqlsync
                                   database_timezone: :local,
                                   application_timezone: :local)
       @mysql.query(sql)
+      # @mysql = nil
+    end
+
+    def self.finalize(object_id)
+      @mysql.close
+    end
+
+    def finalize(object_id)
+      @mysql.close
     end
 
     def get_tables()

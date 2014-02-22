@@ -3,9 +3,9 @@ require 'mysqlsync/schema'
 module Mysqlsync
   class Sync
     def initialize(from, to, table)
-      $from  = explode_dns(from)
-      $to    = explode_dns(to)
       $table = table
+      $from  = Sync.explode_dns(from)
+      $to    = Sync.explode_dns(to)
       @from  = Schema.new($from, $table)
       @to    = Schema.new($to, $table)
 
@@ -19,7 +19,7 @@ module Mysqlsync
       end
     end
 
-    def explode_dns(options)
+    def self.explode_dns(options)
       options.split(',')
              .map{ |c| c.split('=', 2) }
              .inject({}) { |m, (key,value)|
@@ -40,13 +40,7 @@ module Mysqlsync
     end
 
     def checksum
-      if @from.get_checksum == @to.get_checksum
-        puts "-- Both tables are equal."
-        exit 0
-      else
-        puts "-- Both tables are NOT equal, try to sync data."
-        exit 1
-      end
+      (@from.get_checksum == @to.get_checksum)
     end
 
     def valid_schema
@@ -84,9 +78,9 @@ module Mysqlsync
       inserts = @from.get_data(ids)
 
       if !inserts.nil?
-        inserts.each do |insert|
-          puts @to.get_insert(columns, insert)
-        end
+        inserts.map { |insert|
+          @to.get_insert(columns, insert)
+        }
       end
     end
 
@@ -99,9 +93,9 @@ module Mysqlsync
 
       values = @from.get_data(diff)
       if values.kind_of?(Array)
-        values.map do |update|
-          puts @to.get_update(update, pk)
-        end
+        values.map { |update|
+          @to.get_update(update, pk)
+        }
       end
     end
 
@@ -113,9 +107,9 @@ module Mysqlsync
       deletes = @to.get_data(ids)
 
       if !deletes.nil?
-        deletes.each do |delete|
-          puts @to.get_delete(id, delete)
-        end
+        deletes.map { |delete|
+          @to.get_delete(id, delete)
+        }
       end
     end
   end

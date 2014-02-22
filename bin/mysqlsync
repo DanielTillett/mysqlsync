@@ -33,9 +33,9 @@ command :data do |c|
 
       if sync.valid_schema
         sync.get_dump_head
-        sync.do_delete
-        sync.do_update
-        sync.do_insert
+        sync.do_delete.each { |row| puts row }
+        sync.do_update.each { |row| puts row }
+        sync.do_insert.each { |row| puts row }
         sync.get_dump_bottom
       else
         puts "-- Schema table is not equal."
@@ -58,7 +58,14 @@ command :checksum do |c|
        puts c.syntax
     else
       sync = Mysqlsync::Sync.new(options.from, options.to, options.table)
-      sync.checksum
+
+      if sync.checksum
+        puts "-- Both tables are equal."
+        exit 0
+      else
+        puts "-- Both tables are NOT equal, try to sync data."
+        exit 1
+      end
     end
   end
 end

@@ -25,7 +25,6 @@ module Mysqlsync
                                   database_timezone: :local,
                                   application_timezone: :local)
       @mysql.query(sql)
-      # @mysql = nil
     end
 
     def self.finalize(object_id)

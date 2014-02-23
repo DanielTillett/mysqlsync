@@ -49,8 +49,8 @@ class Test03 < Test::Unit::TestCase
     @@con_from.execute(sql_table_from)
     @@con_to.execute(sql_table_to)
 
-    dns_from  = 'h=127.0.0.1,P=3306,u=root,p=,d=demo_from'
-    dns_to    = 'h=127.0.0.1,P=3306,u=root,p=,d=demo_to'
+    dns_from  = 'h=127.0.0.1,P=3306,u=root,d=demo_from'
+    dns_to    = 'h=127.0.0.1,P=3306,u=root,d=demo_to'
 
     # Initialize object to test:
     @@sync = Mysqlsync::Sync.new(dns_from, dns_to, 'a')

@@ -56,19 +56,28 @@ module Mysqlsync
       puts @to.get_dump_bottom
     end
 
-    def do_modify_table
+    def equal_table
+      (@from.get_desc_table == @to.get_desc_table)
+    end
+
+    def do_alter_table_modify
       left   = @from.get_desc_table
       right  = @to.get_desc_table
       diff   = left - right
+
+      diff.map { |alter|
+        @to.get_alter_table(alter, right, left)
+      }
+    end
+
+    def do_alter_table_remove
+      left   = @from.get_desc_table
+      right  = @to.get_desc_table
       remove = right.map{|k,v| k } - left.map{|k,v| k }
 
-      diff.each do |alter|
-        puts @to.get_alter_table(alter, right, left)
-      end
-
-      remove.each do |column|
-        puts @to.get_drop_column(column)
-      end
+      remove.map { |column|
+        @to.get_drop_column(column)
+      }
     end
 
     def do_insert()

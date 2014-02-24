@@ -12,7 +12,7 @@ module Mysqlsync
       @port     = host[:port].to_i
       @table    = table
 
-      # ObjectSpace.define_finalizer(self, self.class.method(:finalize))
+      ObjectSpace.define_finalizer(self, self.class.method(:finalize))
     end
 
     def execute(sql)
@@ -26,13 +26,13 @@ module Mysqlsync
       @mysql.query(sql)
     end
 
-    # def self.finalize(object_id)
-    #   @mysql.close
-    # end
+    def self.finalize(object_id)
+      @mysql.close
+    end
 
-    # def finalize(object_id)
-    #   @mysql.close
-    # end
+    def finalize(object_id)
+      @mysql.close
+    end
 
     def get_tables()
       sql = <<SQL

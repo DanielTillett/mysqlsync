@@ -21,7 +21,7 @@ class TestSync < Test::Unit::TestCase
     @@con_to.execute(sql_db_to)
 
     # Create tables:
-    sql_table_a_from = <<-EOS
+    sql_table_data_from = <<-EOS
       CREATE TABLE IF NOT EXISTS demo_from.data (
         id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         a INT,
@@ -34,14 +34,14 @@ class TestSync < Test::Unit::TestCase
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     EOS
 
-    sql_table_b_from = <<-EOS
+    sql_table_pk_from = <<-EOS
       CREATE TABLE IF NOT EXISTS demo_from.pk (
         a INT NOT NULL,
         b INT NOT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     EOS
 
-    sql_table_c_from = <<-EOS
+    sql_table_schema_from = <<-EOS
       CREATE TABLE IF NOT EXISTS demo_from.schema (
         id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         a INT DEFAULT 0,
@@ -54,7 +54,7 @@ class TestSync < Test::Unit::TestCase
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     EOS
 
-    sql_table_a_to = <<-EOS
+    sql_table_data_to = <<-EOS
       CREATE TABLE IF NOT EXISTS demo_to.data (
         id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         a INT,
@@ -67,14 +67,14 @@ class TestSync < Test::Unit::TestCase
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     EOS
 
-    sql_table_b_to = <<-EOS
+    sql_table_pk_to = <<-EOS
       CREATE TABLE IF NOT EXISTS demo_to.pk (
         a INT NOT NULL,
         b INT NOT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     EOS
 
-    sql_table_c_to = <<-EOS
+    sql_table_schema_to = <<-EOS
       CREATE TABLE IF NOT EXISTS demo_to.schema (
         id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         a INT,
@@ -86,12 +86,12 @@ class TestSync < Test::Unit::TestCase
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     EOS
 
-    @@con_from.execute(sql_table_a_from)
-    @@con_from.execute(sql_table_b_from)
-    @@con_from.execute(sql_table_c_from)
-    @@con_to.execute(sql_table_a_to)
-    @@con_to.execute(sql_table_b_to)
-    @@con_to.execute(sql_table_c_to)
+    @@con_from.execute(sql_table_data_from)
+    @@con_from.execute(sql_table_pk_from)
+    @@con_from.execute(sql_table_schema_from)
+    @@con_to.execute(sql_table_data_to)
+    @@con_to.execute(sql_table_pk_to)
+    @@con_to.execute(sql_table_schema_to)
 
     # Pupulate tables:
     sql_insert_from = <<-EOS

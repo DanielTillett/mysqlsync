@@ -3,19 +3,19 @@ require 'mysqlsync/schema'
 module Mysqlsync
   class Sync
     def initialize(from, to, table)
-      $table = table
-      $from  = Sync.explode_dns(from)
-      $to    = Sync.explode_dns(to)
-      @from  = Schema.new($from, $table)
-      @to    = Schema.new($to, $table)
+      @table = table
+      @from  = Sync.explode_dns(from)
+      @to    = Sync.explode_dns(to)
+      @from  = Schema.new(@from, @table)
+      @to    = Schema.new(@to, @table)
 
       if valid_schema
-        $from_columns = @from.get_columns
-        $from_ids     = @from.get_ids
-        $from_md5s    = @from.get_md5s
-        $to_columns   = @to.get_columns
-        $to_ids       = @to.get_ids
-        $to_md5s      = @to.get_md5s
+        @from_columns = @from.get_columns
+        @from_ids     = @from.get_ids
+        @from_md5s    = @from.get_md5s
+        @to_columns   = @to.get_columns
+        @to_ids       = @to.get_ids
+        @to_md5s      = @to.get_md5s
       end
     end
 
@@ -82,7 +82,7 @@ module Mysqlsync
 
     def do_insert()
       # Remove Any Elements from Array 1 that are contained in Array 2.(Difference)
-      ids     = $from_ids - $to_ids
+      ids     = @from_ids - @to_ids
       columns = @from.get_columns()
       inserts = @from.get_data(ids)
 
@@ -95,8 +95,8 @@ module Mysqlsync
 
     def do_update()
       # Get Common Elements between Two Arrays(Intersection)
-      left  = ($from_md5s - $to_md5s).map{|k,v| k }
-      right = ($to_md5s   - $from_md5s).map{|k,v| k }
+      left  = (@from_md5s - @to_md5s).map{|k,v| k }
+      right = (@to_md5s   - @from_md5s).map{|k,v| k }
       diff  = left & right
       pk    = @from.get_primary_key()
 
@@ -110,7 +110,7 @@ module Mysqlsync
 
     def do_delete()
       # Remove Any Elements from Array 1 that are contained in Array 2.(Difference)
-      ids     = $to_ids - $from_ids
+      ids     = @to_ids - @from_ids
       id      = @to.get_primary_key()
       columns = @to.get_columns()
       deletes = @to.get_data(ids)

@@ -11,9 +11,8 @@ module Mysqlsync
       @database = host[:database]
       @port     = host[:port].to_i
       @table    = table
-      @describe = get_desc_table
 
-      ObjectSpace.define_finalizer(self, self.class.method(:finalize))
+      # ObjectSpace.define_finalizer(self, self.class.method(:finalize))
     end
 
     def execute(sql)
@@ -27,13 +26,13 @@ module Mysqlsync
       @mysql.query(sql)
     end
 
-    def self.finalize(object_id)
-      @mysql.close
-    end
+    # def self.finalize(object_id)
+    #   @mysql.close
+    # end
 
-    def finalize(object_id)
-      @mysql.close
-    end
+    # def finalize(object_id)
+    #   @mysql.close
+    # end
 
     def get_tables()
       sql = <<SQL
@@ -48,19 +47,20 @@ SQL
     end
 
     def get_desc_table()
-      sql = <<SQL
-SELECT COLUMN_NAME,
-       COLUMN_TYPE,
-       IS_NULLABLE,
-       COLUMN_DEFAULT,
-       EXTRA,
-       ORDINAL_POSITION
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE table_schema = '#{@database}'
-  AND table_name   = '#{@table}';
-SQL
-
-      execute(sql).each(:as => :array)
+      if !@table.nil?
+        sql = <<-EOS
+              SELECT COLUMN_NAME,
+                     COLUMN_TYPE,
+                     IS_NULLABLE,
+                     COLUMN_DEFAULT,
+                     EXTRA,
+                     ORDINAL_POSITION
+              FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_schema = '#{@database}'
+                AND table_name   = '#{@table}';
+              EOS
+        execute(sql).each(:as => :array)
+      end
     end
 
     def get_columns()
@@ -225,7 +225,7 @@ SQL
     end
 
     def get_datatype(column)
-      @describe.each do |c|
+      get_desc_table.each do |c|
         if c.first == column
           return c[1].gsub(/\(\d+(\,\d+)?\)/, '').upcase
         end

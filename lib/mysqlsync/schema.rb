@@ -4,25 +4,34 @@ require 'time'
 
 module Mysqlsync
   class Schema
-    def initialize(host, table)
+    def initialize(host, table = nil)
       @host     = host[:host]
       @username = host[:user]
       @password = host[:password]
       @database = host[:database]
       @port     = host[:port].to_i
       @table    = table
-      @describe = get_desc_table
+
+      ObjectSpace.define_finalizer(self, self.class.method(:finalize))
     end
 
     def execute(sql)
       @mysql = Mysql2::Client.new(host: @host,
-                                  username: @username,
-                                  password: @password,
-                                  database: @database,
-                                  port: @port,
-                                  database_timezone: :local,
-                                  application_timezone: :local)
+                                   username: @username,
+                                   password: @password,
+                                   database: @database,
+                                   port: @port,
+                                   database_timezone: :local,
+                                   application_timezone: :local)
       @mysql.query(sql)
+    end
+
+    def self.finalize(object_id)
+      @mysql.close
+    end
+
+    def finalize(object_id)
+      @mysql.close
     end
 
     def get_tables()
@@ -38,19 +47,20 @@ SQL
     end
 
     def get_desc_table()
-      sql = <<SQL
-SELECT COLUMN_NAME,
-       COLUMN_TYPE,
-       IS_NULLABLE,
-       COLUMN_DEFAULT,
-       EXTRA,
-       ORDINAL_POSITION
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE table_schema = '#{@database}'
-  AND table_name   = '#{@table}';
-SQL
-
-      execute(sql).each(:as => :array)
+      if !@table.nil?
+        sql = <<-EOS
+              SELECT COLUMN_NAME,
+                     COLUMN_TYPE,
+                     IS_NULLABLE,
+                     COLUMN_DEFAULT,
+                     EXTRA,
+                     ORDINAL_POSITION
+              FROM INFORMATION_SCHEMA.COLUMNS
+              WHERE table_schema = '#{@database}'
+                AND table_name   = '#{@table}';
+              EOS
+        execute(sql).each(:as => :array)
+      end
     end
 
     def get_columns()
@@ -114,10 +124,11 @@ SQL
     def get_alter_table(alter, right, left)
       column  = alter[0]
       type    = alter[1]
+      default = value(alter[3], alter[0])
       action  = (right.any? {|i| i.first == alter.first})? ' MODIFY' : ' ADD'
-      notnull = (!alter[2] == 'NO')? ' NOT NULL' : ' NULL'
-      default = (!alter[3].nil?)? " DEFAULT #{alter[3]}" : ''
-      ai      = (alter[4].include? 'auto_increment')? ' AUTO_INCREMENT' : ''
+      notnull = (alter[2] == 'NO')? ' NOT NULL' : ' NULL'
+      default = (!alter[3].nil?)? " DEFAULT #{default}" : ''
+      extra   = (!alter[4].empty?)? " #{alter[4]}" : ''
       index   = left.each_index.select{|i| left[i] == alter}.first
       after   = left[((index > 0)? index - 1 : 0)].first
       after   = (index > 0)? " AFTER #{after}" : ' FIRST'
@@ -131,7 +142,7 @@ SQL
       sql << type
       sql << notnull
       sql << default
-      sql << ai
+      sql << extra
       sql << after
       sql << ';'
     end
@@ -214,7 +225,7 @@ SQL
     end
 
     def get_datatype(column)
-      @describe.each do |c|
+      get_desc_table.each do |c|
         if c.first == column
           return c[1].gsub(/\(\d+(\,\d+)?\)/, '').upcase
         end
@@ -227,6 +238,8 @@ SQL
       else
         if value.nil?
           'NULL'
+        elsif value == 'CURRENT_TIMESTAMP'
+          value
         elsif key.nil?
           if !is_a_number?(value)
             "'#{value}'"

@@ -10,8 +10,8 @@ sentences to equal same tables.
 
 ## You can:
 
-- Sync schema.
-- Sync data.
+- Sync table schema.
+- Sync table data.
 - Checksum between tables in different servers.
 
 ## Installation
@@ -22,15 +22,21 @@ Install it yourself as:
 
 ## Usage
 
-### Sync all:
+### Sync data:
 
-This command permit sync table schema and data:
+This command permit sync data:
 
 ```SHELL
 $ mysqlsync data --from h=localhost,P=3306,u=root,p=admin,d=demo_from \
                  --to h=localhost,P=3306,u=root,p=admin,d=demo_to \
                  --table foo
 ```
+
+## Warning
+
+1. Do not use this tool in production before testing it.
+2. Please, use when do you need.
+3. The author is NOT responsible for misuse use of this tool.
 
 ## Contributing
 

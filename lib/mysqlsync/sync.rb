@@ -3,11 +3,11 @@ require 'mysqlsync/schema'
 module Mysqlsync
   class Sync
     def initialize(from, to, table)
-      @table = table
-      @from  = Sync.explode_dns(from)
-      @to    = Sync.explode_dns(to)
-      @from  = Schema.new(@from, @table)
-      @to    = Schema.new(@to, @table)
+      @table    = table
+      @dns_from = Sync.explode_dns(from)
+      @dns_to   = Sync.explode_dns(to)
+      @from     = Schema.new(@dns_from, @table)
+      @to       = Schema.new(@dns_to, @table)
 
       if valid_schema
         @from_columns = @from.get_columns

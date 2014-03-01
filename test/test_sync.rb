@@ -10,6 +10,7 @@ class TestSync < Test::Unit::TestCase
     from      = Mysqlsync::Sync.explode_dns(dns_from)
     to        = Mysqlsync::Sync.explode_dns(dns_to)
 
+    # Connections
     @@con_from = Mysqlsync::Schema.new(from)
     @@con_to   = Mysqlsync::Schema.new(to)
 
@@ -191,7 +192,6 @@ class TestSync < Test::Unit::TestCase
 
     # Apply change into table.
     row_test.each { |alter|
-      # puts alter
       @@con_to.execute(alter)
     }
 
@@ -216,10 +216,10 @@ class TestSync < Test::Unit::TestCase
   end
 
   def self.shutdown
-    sql_db_fom = 'DROP DATABASE IF EXISTS demo_from;'
+    sql_db_from = 'DROP DATABASE IF EXISTS demo_from;'
     sql_db_to  = 'DROP DATABASE IF EXISTS demo_to;'
 
-    @@con_from.execute(sql_db_fom)
+    @@con_from.execute(sql_db_from)
     @@con_to.execute(sql_db_to)
 
     @@con_from = nil

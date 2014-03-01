@@ -17,12 +17,12 @@ module Mysqlsync
 
     def execute(sql)
       @mysql = Mysql2::Client.new(host: @host,
-                                  username: @username,
-                                  password: @password,
-                                  database: @database,
-                                  port: @port,
-                                  database_timezone: :local,
-                                  application_timezone: :local)
+                                   username: @username,
+                                   password: @password,
+                                   database: @database,
+                                   port: @port,
+                                   database_timezone: :local,
+                                   application_timezone: :local)
       @mysql.query(sql)
     end
 
